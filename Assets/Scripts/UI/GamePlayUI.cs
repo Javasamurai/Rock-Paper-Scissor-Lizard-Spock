@@ -38,7 +38,7 @@ namespace RPS
         {
             if (GameManager.CurrentGameState == GAME_STATE.PLAYER_TURN)
             {
-                timerBarSprite.fillAmount = GameManager.Instance.timeRemaining;
+                timerBarSprite.fillAmount = GameManager.Instance.percentageRemaining;
             }
         }
 
@@ -64,6 +64,7 @@ namespace RPS
                 case GAME_STATE.AI_TURN:
                     timerBarSprite.fillAmount = 0;
                     var aiGesture = RandomGesture();
+                    GameManager.Instance.ChangeGameState(GAME_STATE.PLAYER_TURN);
                     OnGestureGenerated?.Invoke(aiGesture.gestureType);
                     break;
                 case GAME_STATE.PLAYER_WON:
@@ -72,10 +73,15 @@ namespace RPS
                 case GAME_STATE.PLAYER_LOST:
                     result.text = "You lost!";
                     break;
+                case GAME_STATE.DRAW:
+                    result.text = "Draw!";
+                    break;
                 default:
                     result.text = string.Empty;
                     break;
             }
+            buttonContainer.gameObject.SetActive(state != GAME_STATE.PLAYER_LOST && state != GAME_STATE.PLAYER_WON &&
+                state != GAME_STATE.DRAW);
         }
 
         private void OnDestroy()

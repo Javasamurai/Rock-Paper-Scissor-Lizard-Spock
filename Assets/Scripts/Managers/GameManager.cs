@@ -24,10 +24,12 @@ namespace RPS
         public static GAME_STATE CurrentGameState { get; private set; }
         
         [SerializeField] public List<GestureConfig> GestureConfigs;
-        [HideInInspector] public float timeRemaining;
-        
+        private float timeRemaining;
         // TODO: Move to config
-        private const float INPUT_TIME = 1f;
+        private const float INPUT_TIME = 1.5f; // 0.5 seconds extra for animation
+        
+        private Coroutine _timerCoroutine;
+        public float percentageRemaining => timeRemaining / INPUT_TIME;
 
         private void Awake()
         {
@@ -46,13 +48,14 @@ namespace RPS
 
         private void GestureSelected(GestureConfig.GestureType obj)
         {
-            StopCoroutine(StartTimer());
+            if (_timerCoroutine != null)
+                StopCoroutine(_timerCoroutine);
         }
 
         public void ChangeGameState(GAME_STATE state)
         {
-            OnGameStateChanged?.Invoke(state);
             CurrentGameState = state;
+            OnGameStateChanged?.Invoke(state);
             
             switch (state)
             {
@@ -60,7 +63,7 @@ namespace RPS
                     timeRemaining = 0;
                     break;
                 case GAME_STATE.PLAYER_TURN:
-                    StartCoroutine(StartTimer());
+                    _timerCoroutine = StartCoroutine(StartTimer());
                     break;
             }
             Debug.Log($"Changed game state to {state}");
@@ -78,10 +81,11 @@ namespace RPS
             while (spentTime <= INPUT_TIME)
             {
                 spentTime += Time.deltaTime;
-                timeRemaining = spentTime - INPUT_TIME;
+                timeRemaining = INPUT_TIME - spentTime;
                 yield return null;
             }
-            ChangeGameState(GAME_STATE.MENU);
+            ChangeGameState(GAME_STATE.PLAYER_LOST);
+            StartCoroutine(ChangeStateAfterDelay(1, GAME_STATE.MENU));
         }
     }
 }

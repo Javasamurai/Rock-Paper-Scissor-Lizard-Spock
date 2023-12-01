@@ -35,15 +35,16 @@ namespace RPS
             Debug.Log($"Selected {gestureType}");
             var playerGesture = GameManager.Instance.GestureConfigs.Find(x => x.gestureType == gestureType);
             playerGestureSprite.sprite = playerGesture.gestureSprite;
+            playerGestureSprite.transform.position = Vector3.zero;
             playerGestureSprite.transform.DOMoveY(-3, .5f);
-            var winner = CheckWinner(playerGesture, currentAIgesture);
-            GameManager.Instance.ChangeGameState(winner ? GAME_STATE.PLAYER_WON : GAME_STATE.PLAYER_LOST);
+            CheckWinner(playerGesture, currentAIgesture);
         }
 
         private void OnOnGestureGenerated(GestureConfig.GestureType gestureType)
         {
             currentAIgesture = GameManager.Instance.GestureConfigs.Find(x => x.gestureType == gestureType);
             AIgestureSprite.sprite = currentAIgesture.gestureSprite;
+            AIgestureSprite.transform.position = Vector3.zero;
             AIgestureSprite.transform.DOMoveY(3, .5f);
         }
 
@@ -66,7 +67,7 @@ namespace RPS
             playerGestureSprite.transform.position = Vector3.zero;
         }
 
-        private bool CheckWinner(GestureConfig playerGesture, GestureConfig aiGesture)
+        private void CheckWinner(GestureConfig playerGesture, GestureConfig aiGesture)
         {
             var gameManager = GameManager.Instance;
             
@@ -74,20 +75,29 @@ namespace RPS
             {
                 score++;
                 gameManager.ChangeGameState(GAME_STATE.PLAYER_WON);
-                StartCoroutine(gameManager.ChangeStateAfterDelay(1f, GAME_STATE.PLAYER_TURN));
-                return true;
+                StartCoroutine(gameManager.ChangeStateAfterDelay(1f, GAME_STATE.AI_TURN));
             }
-            if (aiGesture.beats.Contains(playerGesture.gestureType))
+            else if (aiGesture.beats.Contains(playerGesture.gestureType))
             {
-                PlayerPrefs.SetInt("MaxScore", score);
+                UpdateScore(score);
                 score = 0;
                 gameManager.ChangeGameState(GAME_STATE.PLAYER_LOST);
                 StartCoroutine(gameManager.ChangeStateAfterDelay(1f, GAME_STATE.MENU));
-                return false;
             }
-            gameManager.ChangeGameState(GAME_STATE.DRAW);
-            StartCoroutine(gameManager.ChangeStateAfterDelay(1f, GAME_STATE.PLAYER_TURN));
-            return true;
+            else
+            {
+                gameManager.ChangeGameState(GAME_STATE.DRAW);
+                StartCoroutine(gameManager.ChangeStateAfterDelay(1f, GAME_STATE.AI_TURN));
+            }
+        }
+
+        private void UpdateScore(int score)
+        {
+            var maxScore = PlayerPrefs.GetInt("MaxScore");
+            if (score > maxScore)
+            {
+                PlayerPrefs.SetInt("MaxScore", score);
+            }
         }
 
         private void OnDestroy()
