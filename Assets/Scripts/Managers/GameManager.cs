@@ -13,7 +13,8 @@ namespace RPS
         PLAYER_TURN,
         DRAW,
         PLAYER_WON,
-        PLAYER_LOST
+        PLAYER_LOST,
+        ROUND_OVER
     }
 
     [DefaultExecutionOrder(100)]
@@ -44,6 +45,7 @@ namespace RPS
             }
             GamePlayUI.OnGestureSelected += GestureSelected;
             ChangeGameState(GAME_STATE.MENU);
+            Application.targetFrameRate = 60;
         }
 
         private void GestureSelected(GestureConfig.GestureType obj)

@@ -54,6 +54,10 @@ namespace RPS
             {
                 ResetGame();
             }
+            if (state == GAME_STATE.ROUND_OVER)
+            {
+                ResetGame();
+            }
         }
 
         private void ResetGame()
